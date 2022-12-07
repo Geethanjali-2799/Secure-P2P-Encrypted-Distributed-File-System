@@ -32,6 +32,7 @@ public class Server
     			System.out.println("Server started!! ");
     			System.out.println(" ");
     			System.out.println("Waiting for the Client to be connected ..");
+
     	}
     	catch(IOException e)
     	{
@@ -75,18 +76,36 @@ class ServerTestClass extends Thread
     	{  
     		InputStream is=socket.getInputStream();
     		oos = new ObjectOutputStream(socket.getOutputStream());
-    		ois = new ObjectInputStream(is);     
+    		ois = new ObjectInputStream(is);
+
+			String username = (String)ois.readObject();
+			String pwd = (String)ois.readObject();
+			int peerid=(int)ois.readObject();
+			int flag=0;
+			Scanner file=new Scanner(new File("/Users/tarunkrishnareddykolli/Desktop/SEFS/Validation.txt"));
+			while(file.hasNext())
+			{
+				String a=file.next();
+				String b=file.next();
+				if(a.toLowerCase().equals(username.toLowerCase()))
+				{
+					if(b.equals(pwd))
+					{
+						flag=1;
+						System.out.println("PeerID:"+peerid+" Verified and connected to the SERVER");
+					}
+
+				}
+			}
+			oos.writeObject(flag);
+
     		filesList=(ArrayList<FileInfo>)ois.readObject();
-    		System.out.println("All the available files from the given directory have been recieved to the Server!");      
     		for(int i=0;i<filesList.size() ;i++)
     		{
     			globalArray.add(filesList.get(i));
     		}
     		System.out.println("Total number of files available in the Server that are received from all the connected clients: " +globalArray.size());
     	}
-
-		
-    	
     	catch(IndexOutOfBoundsException e){
     		System.out.println("Index out of bounds exception");
     	}
@@ -97,22 +116,15 @@ class ServerTestClass extends Thread
     		System.out.println("Class not found exception");
     	}
 
-		//for(int i = 0; i < globalArray.size(); i++) 
-		//{   
-		//	System.out.println(globalArray.get(i).peerid+" "+globalArray.get(i).portNumber +" "+ globalArray.get(i).fileName);
-		//}
-		//System.out.println(globalArray);'''
-
     	try {
     			str = (String) ois.readObject();
-				System.out.println(str);
     	}
     	catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(ServerTestClass.class.getName()).log(Level.SEVERE, null, ex);
         }
     	
         ArrayList<FileInfo> sendingPeers = new ArrayList<FileInfo>();
-        System.out.println("Searching for the file name...!!!"); 
+        System.out.println("Searching for the file name...!!!"+ str+".txt");
 
            
         for(int j=0;j<globalArray.size();j++)
@@ -130,7 +142,7 @@ class ServerTestClass extends Thread
 
         try {
         	oos.writeObject(sendingPeers);
-			System.out.println("Sending done");
+			System.out.println("Sending information to CLient");
         } 
         catch (IOException ex) {
          Logger.getLogger(ServerTestClass.class.getName()).log(Level.SEVERE, null, ex);
