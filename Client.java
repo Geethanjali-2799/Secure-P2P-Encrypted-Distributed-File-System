@@ -1,16 +1,20 @@
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.lang.Thread;
 
 public class Client
 {
+
 	@SuppressWarnings({ "unchecked", "rawtypes", "resource", "unused" })
-	//public static void main(String args[]) throws Exception
-	public Client()
+
+	public static void main(String args[]) throws Exception{
+		Client client = new Client(Integer.parseInt(args[0]),Integer.parseInt(args[1]));
+	}
+	public Client(int peerServerPort, int readpid) throws NumberFormatException, IOException
 	{  
 		Socket socket;
 		ArrayList al;  
@@ -20,21 +24,22 @@ public class Client
 		ObjectOutputStream oos ;
 		String string;
 		Object o,b;
-		String directoryPath=null;
-		int peerServerPort=0;
+		String d,directoryPath=null;
+		//int peerServerPort=0;
    
 		try
 		{
-			BufferedReader br = new BufferedReader(new InputStreamReader(System.in)); 
+			BufferedReader br = new BufferedReader(new InputStreamReader(System.in)); 	
   			
 			System.out.println("Welcome to the Client ::");
 			System.out.println(" ");
 			System.out.println("Enter the directory that contain the files -->");
-			directoryPath=br.readLine();
+			d=br.readLine();
+			directoryPath="/Users/tarunkrishnareddykolli/Desktop/N/peer_to_peer_Files/"+d;
 			
-			System.out.println("Enter the port number on which the peer should act as server ::");
-			peerServerPort=Integer.parseInt(br.readLine());
-  
+			//System.out.println("Enter the port number on which the peer should act as server ::");
+			//peerServerPort=Integer.parseInt(br.readLine());
+
 			ServerDownload objServerDownload = new ServerDownload(peerServerPort,directoryPath);
 			objServerDownload.start();
 			
@@ -51,8 +56,8 @@ public class Client
 			ois = new ObjectInputStream(socket.getInputStream());
 			oos = new ObjectOutputStream(socket.getOutputStream()); 
 			
-			System.out.println("Enter the peerid for this directory ::");
-			int readpid=Integer.parseInt(br.readLine());
+			//System.out.println("Enter the peerid for this directory ::");
+			//int readpid=Integer.parseInt(br.readLine());
   
 			File folder = new File(directoryPath); 
 			File[] listofFiles = folder.listFiles();
@@ -70,31 +75,47 @@ public class Client
 			
 			oos.writeObject(arrList);
 			//System.out.println("The complete ArrayList :::"+arrList);
+			int choice=0;
+			System.out.println("Enter your Choice:\n1:Create\n2:Download");
+			choice=Integer.parseInt(br.readLine());
+			if(choice==1)
+			{
+				System.out.println("Creation done");
+			}
+			if(choice==2)
+			{
+
 			
 			System.out.println("Enter the desired file name that you want to downloaded from the list of the files available in the Server ::");
 			String fileNameToDownload = br.readLine();
 			oos.writeObject(fileNameToDownload);
 			
 			System.out.println("Waiting for the reply from Server...!!");
-			
+
 			ArrayList<FileInfo> peers= new ArrayList<FileInfo>();
 			peers = (ArrayList<FileInfo>)ois.readObject();
 			
-			for(int i=0;i<peers.size();i++)
+			/*for(int i=0;i<peers.size();i++)
 			{  
 				int result = peers.get(i).peerid;
 				int port = peers.get(i).portNumber;
 				System.out.println("The file is stored at peer id " +result+ " on port "+port);
 			}
 			
-			
 			System.out.println("Enter the respective port number of the above peer id :");
 			int clientAsServerPortNumber = Integer.parseInt(br.readLine());
 			
 			System.out.println("Enter the desired peer id from which you want to download the file from :");
-			int clientAsServerPeerid = Integer.parseInt(br.readLine());
+			int clientAsServerPeerid = Integer.parseInt(br.readLine());*/
 			
-			clientAsServer(clientAsServerPeerid,clientAsServerPortNumber,fileNameToDownload,directoryPath);  
+			int result = peers.get(0).peerid;
+			int port = peers.get(0).portNumber;
+			System.out.println("Connecting to Peer "+ result + " on port "+ port);
+			int clientAsServerPortNumber = port;
+			int clientAsServerPeerid =result;
+
+			download(clientAsServerPeerid,clientAsServerPortNumber,fileNameToDownload,directoryPath);  
+			}
 		}
 		catch(Exception e)
 		{
@@ -103,12 +124,12 @@ public class Client
 		}
 	}
 	
-	public static void clientAsServer(int clientAsServerPeerid, int clientAsServerPortNumber, String fileNamedwld, String directoryPath) throws ClassNotFoundException
+	public static void download(int clientAsServerPeerid, int clientAsServerPortNumber, String fileNamedwld, String directoryPath) throws ClassNotFoundException
 	{   
 		try {
 				@SuppressWarnings("resource")
 				Socket clientAsServersocket = new Socket("localhost",clientAsServerPortNumber);
-				
+
 				ObjectOutputStream clientAsServerOOS = new ObjectOutputStream(clientAsServersocket.getOutputStream());
 				ObjectInputStream clientAsServerOIS = new ObjectInputStream(clientAsServersocket.getInputStream());
 				
@@ -118,8 +139,20 @@ public class Client
 				//System.out.println("Number of bytes that have been transferred are ::"+readBytes);
 				
 				byte[] b=new byte[readBytes];
-				clientAsServerOIS.readFully(b);
-				OutputStream  fileOPstream = new FileOutputStream(directoryPath+"//"+fileNamedwld);
+
+				clientAsServerOIS.readFully(b, 0, readBytes);
+
+
+				for (byte buf:b) {
+         
+					// convert byte to char
+					char c = (char)buf; 
+					
+					// prints character
+					System.out.print(c);
+				 }
+
+				OutputStream  fileOPstream = new FileOutputStream(directoryPath+"//"+fileNamedwld+".txt");
 				
 				@SuppressWarnings("resource")
 				
@@ -128,7 +161,7 @@ public class Client
 				
 				System.out.println("Requested file - "+fileNamedwld+ ", has been downloaded to your desired directory "+directoryPath);
 				System.out.println(" ");
-				System.out.println("Display file "+fileNamedwld);
+				System.out.println("Display Name: "+fileNamedwld+".txt");
 				
 				BOS.flush();
 		} 

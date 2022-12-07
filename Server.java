@@ -18,7 +18,9 @@ public class Server
     public static ArrayList<FileInfo> globalArray = new ArrayList<FileInfo>();
  
     @SuppressWarnings("resource")
-	//public static void main(String args[])
+	public static void main(String args[]) throws Exception{
+		Server server = new Server();
+	}
     public Server() throws NumberFormatException, IOException
     {
     	
@@ -82,6 +84,8 @@ class ServerTestClass extends Thread
     		}
     		System.out.println("Total number of files available in the Server that are received from all the connected clients: " +globalArray.size());
     	}
+
+		
     	
     	catch(IndexOutOfBoundsException e){
     		System.out.println("Index out of bounds exception");
@@ -92,9 +96,16 @@ class ServerTestClass extends Thread
     	catch(ClassNotFoundException e){
     		System.out.println("Class not found exception");
     	}
-    	
+
+		//for(int i = 0; i < globalArray.size(); i++) 
+		//{   
+		//	System.out.println(globalArray.get(i).peerid+" "+globalArray.get(i).portNumber +" "+ globalArray.get(i).fileName);
+		//}
+		//System.out.println(globalArray);'''
+
     	try {
     			str = (String) ois.readObject();
+				System.out.println(str);
     	}
     	catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(ServerTestClass.class.getName()).log(Level.SEVERE, null, ex);
@@ -102,27 +113,29 @@ class ServerTestClass extends Thread
     	
         ArrayList<FileInfo> sendingPeers = new ArrayList<FileInfo>();
         System.out.println("Searching for the file name...!!!"); 
+
            
         for(int j=0;j<globalArray.size();j++)
         {
+
            FileInfo fileInfo=globalArray.get(j);
-           Boolean tf=fileInfo.fileName.equals(str);
+		   String s=str+".txt";
+           Boolean tf=(fileInfo.fileName.equals(s));
            if(tf)
-           {
+           {	
         	   index = j;
         	   sendingPeers.add(fileInfo);
            }
         }
-        
+
         try {
         	oos.writeObject(sendingPeers);
+			System.out.println("Sending done");
         } 
         catch (IOException ex) {
          Logger.getLogger(ServerTestClass.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
-    
-
  
 
