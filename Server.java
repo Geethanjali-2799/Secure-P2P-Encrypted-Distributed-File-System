@@ -42,7 +42,6 @@ public class Server
     	{
     		try{
     				socket = serverSocket.accept();
-    				//serverSocket.close();
     		}
     		catch(IOException e)
     		{
@@ -149,5 +148,7 @@ class ServerTestClass extends Thread
         }
     }
 }
+
+
  
 

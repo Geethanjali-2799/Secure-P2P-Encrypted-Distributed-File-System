@@ -24,7 +24,7 @@ public class ServerDownload extends Thread
     */
     ServerDownload(int peerServerPort,String directoryPath) {        
     	this.peerServerPort=peerServerPort;
-    	this.directoryPath=directoryPath;    
+    	this.directoryPath=directoryPath;
     }
     public void run(){
     	try {
@@ -45,6 +45,7 @@ class ServerDownloadThread extends Thread
     {
         this.dwldThreadSocket=dwldThreadSocket;       
         this.directoryPath=directoryPath;
+
     }
     @SuppressWarnings({ "unused", "resource" })
 	public void run()
@@ -58,7 +59,7 @@ class ServerDownloadThread extends Thread
             String fileLocation;// Stores the directory name
             while(true)
             {
-                File myFile = new File(directoryPath+"//"+fileName);
+                File myFile = new File(directoryPath+"//"+fileName+".txt");
                 long length = myFile.length();
                 
                 byte [] byte_arr = new byte[(int)length];
