@@ -1,4 +1,3 @@
-import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.net.*;
 import java.nio.file.Path;
@@ -7,52 +6,33 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import java.io.FileInputStream;
-
-import java.lang.Thread;
-
-public class Client {
+public class Peer {
 
 	@SuppressWarnings({"unchecked", "rawtypes", "resource", "unused"})
 
-	private static Socket clientThread;
-
 	public static void main(String args[]) throws Exception {
-		Client client = new Client(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+		Peer peer = new Peer(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
 	}
 
-	public Client(int peerServerPort, int peerid) throws NumberFormatException, IOException {
+	public Peer(int peerServerPort, int peerid) throws NumberFormatException, IOException {
 		Socket socket;
-		ArrayList al;
 		ArrayList<FileInfo> arrList = new ArrayList<FileInfo>();
-		Scanner scanner = new Scanner(System.in);
-		ObjectInputStream ois;
-		ObjectOutputStream oos;
-		String string;
-		Object o, b;
-		String d, directoryPath = null;
-		//int peerServerPort=0;
+		ObjectInputStream inputStream;
+		ObjectOutputStream outputStream;
+		String dirName, dirPath = null;
 
 		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+			BufferedReader sc = new BufferedReader(new InputStreamReader(System.in));
 
 			System.out.println("Welcome to the Client ::");
 			System.out.println(" ");
-
-			this.clientThread = new Socket("localhost", 7799);
-
-			ObjectOutputStream objOutStream = new ObjectOutputStream(clientThread.getOutputStream());
-			ObjectInputStream objInStream = new ObjectInputStream(clientThread.getInputStream());
-
-			al = new ArrayList();
-			//
-			socket = new Socket("localhost", 7799);
+			socket = new Socket("10.0.0.125", 7799);
 			System.out.println("Connection has been established with the Server");
 
-			ois = new ObjectInputStream(socket.getInputStream());
-			oos = new ObjectOutputStream(socket.getOutputStream());
+			inputStream = new ObjectInputStream(socket.getInputStream());
+			outputStream = new ObjectOutputStream(socket.getOutputStream());
 			while (true) {
-				int flag = validation(oos, ois, peerid);
+				int flag = validation(outputStream, inputStream, peerid);
 				if (flag == 1) {
 					System.out.println("User Verified");
 					break;
@@ -62,14 +42,14 @@ public class Client {
 			}
 
 			System.out.println("Enter the directory that contain the files -->");
-			d = br.readLine();
-			directoryPath = "/Users/tarunkrishnareddykolli/Desktop/SEFS/peer_to_peer_Files/" + d + "/";
+			dirName = sc.readLine();
+			dirPath = "./peer_to_peer_Files/" +dirName+ "/";
 
-			ServerDownload objServerDownload = new ServerDownload(peerServerPort, directoryPath);
-			objServerDownload.start();
+			ServerDownload serverDownload = new ServerDownload(peerServerPort, dirPath);
+			serverDownload.start();
 
 
-			File folder = new File(directoryPath);
+			File folder = new File(dirPath);
 			File[] listofFiles = folder.listFiles();
 			FileInfo currentFile;
 			File file;
@@ -83,34 +63,33 @@ public class Client {
 				arrList.add(currentFile);
 			}
 
-			oos.writeObject(arrList);
+			outputStream.writeObject(arrList);
 
 
 			System.out.println("Enter the operation you want to perform:\n1.Create File\n2.Read File\n3.Write File \n4.Delete File \n5.Download File \n0.To Quit");
-			int var2 = Integer.parseInt(br.readLine());
+			int var2 = Integer.parseInt(sc.readLine());
 			while (var2 != 0) {
-
 				String file_name;
 				if (var2 == 1) {
 					System.out.println("Enter the file name to Create:");
 
 					// Reading File name
-					file_name = br.readLine();
+					file_name = sc.readLine();
 					//function to create a new file..
-					newFile(directoryPath, file_name);
+					newFile(dirPath, file_name);
 					System.out.println("Enter the operation you want to perform:\n1.Create File\n2.Read File\n3.Write File \n4.Delete File \n5.Download File \n0.To Quit");
-					var2 = Integer.parseInt(br.readLine());
+					var2 = Integer.parseInt(sc.readLine());
 				} else if (var2 == 2) {
 
 
 					System.out.println("Enter the file name to Read:");
 
 					// Reading File name
-					file_name = br.readLine();
-					readFile(directoryPath, file_name);
+					file_name = sc.readLine();
+					readFile(dirPath, file_name);
 					System.out.println("Enter the operation you want to perform:\n1.Create File\n2.Read File\n3.Write File \n4.Delete File \n5.Download File \n0.To Quit");
 					//System.out.println("1. Create File\n 2. Read File");
-					var2 = Integer.parseInt(br.readLine());
+					var2 = Integer.parseInt(sc.readLine());
 
 				} else if (var2 == 3) {
 
@@ -119,10 +98,10 @@ public class Client {
 					System.out.println("Enter the file name to Write:");
 
 					// Reading File name
-					file_name = br.readLine();
-					writeFile(directoryPath, file_name);
+					file_name = sc.readLine();
+					writeFile(dirPath, file_name);
 					System.out.println("Enter the operation you want to perform:\n1.Create File\n2.Read File\n3.Write File \n4.Delete File \n5.Download File \n0.To Quit");
-					var2 = Integer.parseInt(br.readLine());
+					var2 = Integer.parseInt(sc.readLine());
 				} else if (var2 == 4) {
 
 
@@ -130,33 +109,32 @@ public class Client {
 					System.out.println("Enter the file name to Delete:");
 
 					// Reading File name
-					file_name = br.readLine();
-					deleteFile(directoryPath, file_name);
+					file_name = sc.readLine();
+					deleteFile(dirPath, file_name);
 					System.out.println("Enter the operation you want to perform:\n1.Create File\n2.Read File\n3.Write File \n4.Delete File \n5.Download File \n0.To Quit");
-					var2 = Integer.parseInt(br.readLine());
+					var2 = Integer.parseInt(sc.readLine());
 
 				} else if (var2 == 5) {
-
 					System.out.println("Enter the desired file name that you want to downloaded from the list of the files available in the Server ::");
-					String fileNameToDownload = br.readLine();
-					oos.writeObject(fileNameToDownload);
+					String fileName = sc.readLine();
+					outputStream.writeObject(fileName);
 
 					System.out.println("Waiting for the reply from Server...!!");
 
 					ArrayList<FileInfo> peers = new ArrayList<FileInfo>();
-					peers = (ArrayList<FileInfo>) ois.readObject();
+					peers = (ArrayList<FileInfo>) inputStream.readObject();
 
 					int result = peers.get(0).peerid;
 					int port = peers.get(0).portNumber;
 					System.out.println("Connecting to Peer " + result + " on port " + port);
-					int clientAsServerPortNumber = port;
-					int clientAsServerPeerid = result;
+					int otherPeerPort = port;
 
-					download(clientAsServerPeerid, clientAsServerPortNumber, fileNameToDownload, directoryPath);
+					String otherPeerIP = "10.0.0.125";
+
+					download(otherPeerIP, otherPeerPort, fileName, dirPath);
+
 					System.out.println("Enter the operation you want to perform:\n1.Create File\n2.Read File\n3.Write File \n4.Delete File \n5.Download File \n0.To Quit");
-					var2 = Integer.parseInt(br.readLine());
-
-
+					var2 = Integer.parseInt(sc.readLine());
 				}
 			}
 		} catch (Exception e) {
@@ -165,41 +143,41 @@ public class Client {
 		}
 	}
 
-	public static void download(int clientAsServerPeerid, int clientAsServerPortNumber, String fileNamedwld, String directoryPath) throws ClassNotFoundException {
+	public static void download(String otherPeerIP, int otherPeerPort, String fileName, String dirPath) throws ClassNotFoundException {
 		try {
 			@SuppressWarnings("resource")
-			Socket clientAsServersocket = new Socket("localhost", clientAsServerPortNumber);
+			Socket clientAsServersocket = new Socket(otherPeerIP, otherPeerPort);
 
 
-			ObjectOutputStream clientAsServerOOS = new ObjectOutputStream(clientAsServersocket.getOutputStream());
-			ObjectInputStream clientAsServerOIS = new ObjectInputStream(clientAsServersocket.getInputStream());
-
-			clientAsServerOOS.writeObject(fileNamedwld);
-			int readBytes = (int) clientAsServerOIS.readObject();
+			ObjectOutputStream outputStream = new ObjectOutputStream(clientAsServersocket.getOutputStream());
+			ObjectInputStream inputStream = new ObjectInputStream(clientAsServersocket.getInputStream());
+			outputStream.writeObject(fileName);
+			int readBytes = (int) inputStream.readObject();
 
 
 			byte[] b = new byte[readBytes];
 
-			clientAsServerOIS.readFully(b, 0, readBytes);
+			inputStream.readFully(b, 0, readBytes);
 
-			OutputStream fileOPstream = new FileOutputStream(directoryPath + "//" + fileNamedwld + ".txt");
+			OutputStream fileOPstream = new FileOutputStream(dirPath + "//" + fileName + ".txt");
 
 			@SuppressWarnings("resource")
 
 			BufferedOutputStream BOS = new BufferedOutputStream(fileOPstream);
 			BOS.write(b, 0, (int) readBytes);
 
-			System.out.println("Requested file - " + fileNamedwld + ", has been downloaded to your desired directory " + directoryPath);
+			System.out.println("Requested file - " + fileName + ", has been downloaded to your desired directory " + dirPath);
 			System.out.println(" ");
-			System.out.println("Display Name: " + fileNamedwld + ".txt");
+			System.out.println("Display Name: " + fileName + ".txt");
 
 			BOS.flush();
+			clientAsServersocket.close();
 		} catch (IOException ex) {
-			Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(Peer.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
 
-	public int validation(ObjectOutputStream oos,ObjectInputStream ois, int peerid) throws IOException {
+	public int validation(ObjectOutputStream outputStream,ObjectInputStream inputStream, int peerid) throws IOException {
 		int flag=0;
 		try {
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -208,10 +186,10 @@ public class Client {
 			System.out.println("Enter your Password");
 			String pwd = br.readLine();
 
-			oos.writeObject(username);
-			oos.writeObject(pwd);
-			oos.writeObject(peerid);
-			flag = (int)ois.readObject();
+			outputStream.writeObject(username);
+			outputStream.writeObject(pwd);
+			outputStream.writeObject(peerid);
+			flag = (int)inputStream.readObject();
 
 			}
 		catch (IOException e)

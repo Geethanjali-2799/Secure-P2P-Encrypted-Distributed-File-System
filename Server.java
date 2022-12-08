@@ -1,15 +1,11 @@
  
 import java.io.*;
-import java.net.*;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.util.Scanner;
-import java.lang.Runnable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.lang.Integer;
 
 @SuppressWarnings("unused")
 
@@ -63,90 +59,87 @@ class ServerTestClass extends Thread
 	}
 
 	ArrayList<FileInfo> filesList=new ArrayList<FileInfo>();
-   	ObjectOutputStream oos;
-	ObjectInputStream ois;
+   	ObjectOutputStream outputStream;
+	ObjectInputStream inputStream;
 	String str;
 	int index;
 
     @SuppressWarnings("unchecked")
-	public void run()
-    {
-    	try
-    	{  
-    		InputStream is=socket.getInputStream();
-    		oos = new ObjectOutputStream(socket.getOutputStream());
-    		ois = new ObjectInputStream(is);
+	public void run() {
+		try {
+			InputStream inputStream = socket.getInputStream();
+			outputStream = new ObjectOutputStream(socket.getOutputStream());
+			this.inputStream = new ObjectInputStream(inputStream);
 
-			String username = (String)ois.readObject();
-			String pwd = (String)ois.readObject();
-			int peerid=(int)ois.readObject();
-			int flag=0;
-			Scanner file=new Scanner(new File("/Users/tarunkrishnareddykolli/Desktop/SEFS/Validation.txt"));
-			while(file.hasNext())
-			{
-				String a=file.next();
-				String b=file.next();
-				if(a.toLowerCase().equals(username.toLowerCase()))
-				{
-					if(b.equals(pwd))
-					{
-						flag=1;
-						System.out.println("PeerID:"+peerid+" Verified and connected to the SERVER");
+			String username = (String) this.inputStream.readObject();
+			String pwd = (String) this.inputStream.readObject();
+			int peerid = (int) this.inputStream.readObject();
+			int flag = 0;
+			Scanner file = new Scanner(new File("/Users/tarunkrishnareddykolli/Desktop/SEFS/Validation.txt"));
+			while (file.hasNext()) {
+				String a = file.next();
+				String b = file.next();
+				if (a.toLowerCase().equals(username.toLowerCase())) {
+					if (b.equals(pwd)) {
+						flag = 1;
+						System.out.println("PeerID:" + peerid + " Verified and connected to the SERVER");
 					}
 
 				}
 			}
-			oos.writeObject(flag);
+			outputStream.writeObject(flag);
 
-    		filesList=(ArrayList<FileInfo>)ois.readObject();
-    		for(int i=0;i<filesList.size() ;i++)
-    		{
-    			globalArray.add(filesList.get(i));
-    		}
-    		System.out.println("Total number of files available in the Server that are received from all the connected clients: " +globalArray.size());
-    	}
-    	catch(IndexOutOfBoundsException e){
-    		System.out.println("Index out of bounds exception");
-    	}
-    	catch(IOException e){
-    		System.out.println("I/O exception");
-    	}
-    	catch(ClassNotFoundException e){
-    		System.out.println("Class not found exception");
-    	}
+			filesList = (ArrayList<FileInfo>) this.inputStream.readObject();
+			for (int i = 0; i < filesList.size(); i++) {
+				globalArray.add(filesList.get(i));
+			}
+			System.out.println("Total number of files available in the Server that are received from all the connected clients: " + globalArray.size());
+		} catch (IndexOutOfBoundsException e) {
+			System.out.println("Index out of bounds exception");
+		} catch (IOException e) {
+			System.out.println("I/O exception");
+		} catch (ClassNotFoundException e) {
+			System.out.println("Class not found exception");
+		}
+		int choice=0;
+		try {
+			choice=(int) inputStream.readObject();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
 
-    	try {
-    			str = (String) ois.readObject();
-    	}
-    	catch (IOException | ClassNotFoundException ex) {
-            Logger.getLogger(ServerTestClass.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    	
-        ArrayList<FileInfo> sendingPeers = new ArrayList<FileInfo>();
-        System.out.println("Searching for the file name...!!!"+ str+".txt");
+		while (choice==5) {
+			try {
+				str = (String) inputStream.readObject();
+			} catch (IOException | ClassNotFoundException ex) {
+				Logger.getLogger(ServerTestClass.class.getName()).log(Level.SEVERE, null, ex);
+			}
 
-           
-        for(int j=0;j<globalArray.size();j++)
-        {
+			ArrayList<FileInfo> sendingPeers = new ArrayList<FileInfo>();
+			System.out.println("Searching for the file name...!!!" + str + ".txt");
 
-           FileInfo fileInfo=globalArray.get(j);
-		   String s=str+".txt";
-           Boolean tf=(fileInfo.fileName.equals(s));
-           if(tf)
-           {	
-        	   index = j;
-        	   sendingPeers.add(fileInfo);
-           }
-        }
 
-        try {
-        	oos.writeObject(sendingPeers);
-			System.out.println("Sending information to CLient");
-        } 
-        catch (IOException ex) {
-         Logger.getLogger(ServerTestClass.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+			for (int j = 0; j < globalArray.size(); j++) {
+
+				FileInfo fileInfo = globalArray.get(j);
+				String s = str + ".txt";
+				Boolean tf = (fileInfo.fileName.equals(s));
+				if (tf) {
+					index = j;
+					sendingPeers.add(fileInfo);
+				}
+			}
+
+			try {
+				outputStream.writeObject(sendingPeers);
+				System.out.println("Sending information to CLient");
+			} catch (IOException ex) {
+				Logger.getLogger(ServerTestClass.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		}
+	}
 }
 
 

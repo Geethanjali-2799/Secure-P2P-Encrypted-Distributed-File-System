@@ -54,11 +54,13 @@ class ServerDownloadThread extends Thread
         {
             ObjectOutputStream objOS = new ObjectOutputStream(dwldThreadSocket.getOutputStream());
             ObjectInputStream objIS = new ObjectInputStream(dwldThreadSocket.getInputStream());
-            
-            String fileName = (String)objIS.readObject();
+
             String fileLocation;// Stores the directory name
             while(true)
             {
+                System.out.println("1");
+                String fileName = (String) objIS.readObject();
+                System.out.println("1");
                 File myFile = new File(directoryPath+"//"+fileName+".txt");
                 long length = myFile.length();
                 
@@ -75,8 +77,16 @@ class ServerDownloadThread extends Thread
                 
                 objOS.write(byte_arr,0,byte_arr.length);
                 
-                objOS.flush();                
+                objOS.flush();
+                if(!dwldThreadSocket.isClosed()){
+                    System.out.println("server socket not closed");
+                } else {
+                    System.out.println("Server socket closed ");
+                }
             }
+
+
+
         }
         catch(Exception e)
         {
