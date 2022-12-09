@@ -26,7 +26,7 @@ public class Peer {
 
 			System.out.println("Welcome to the Client ::");
 			System.out.println(" ");
-			socket = new Socket("10.0.0.125", 7799);
+			socket = new Socket("10.200.53.33", 7799);
 			System.out.println("Connection has been established with the Server");
 
 			inputStream = new ObjectInputStream(socket.getInputStream());
@@ -115,9 +115,12 @@ public class Peer {
 					var2 = Integer.parseInt(sc.readLine());
 
 				} else if (var2 == 5) {
+
 					System.out.println("Enter the desired file name that you want to downloaded from the list of the files available in the Server ::");
 					String fileName = sc.readLine();
+
 					outputStream.writeObject(fileName);
+					outputStream.flush();
 
 					System.out.println("Waiting for the reply from Server...!!");
 
@@ -129,7 +132,7 @@ public class Peer {
 					System.out.println("Connecting to Peer " + result + " on port " + port);
 					int otherPeerPort = port;
 
-					String otherPeerIP = "10.0.0.125";
+					String otherPeerIP = "10.200.137.40";
 
 					download(otherPeerIP, otherPeerPort, fileName, dirPath);
 
@@ -151,9 +154,11 @@ public class Peer {
 
 			ObjectOutputStream outputStream = new ObjectOutputStream(clientAsServersocket.getOutputStream());
 			ObjectInputStream inputStream = new ObjectInputStream(clientAsServersocket.getInputStream());
+			System.out.println(fileName);
 			outputStream.writeObject(fileName);
-			int readBytes = (int) inputStream.readObject();
+			outputStream.flush();
 
+			int readBytes = (int) inputStream.readObject();
 
 			byte[] b = new byte[readBytes];
 
@@ -171,7 +176,9 @@ public class Peer {
 			System.out.println("Display Name: " + fileName + ".txt");
 
 			BOS.flush();
-			clientAsServersocket.close();
+			outputStream.close();
+			inputStream.close();
+
 		} catch (IOException ex) {
 			Logger.getLogger(Peer.class.getName()).log(Level.SEVERE, null, ex);
 		}

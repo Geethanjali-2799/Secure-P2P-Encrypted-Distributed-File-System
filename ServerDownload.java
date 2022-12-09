@@ -28,9 +28,11 @@ public class ServerDownload extends Thread
     }
     public void run(){
     	try {
-    			dwldServerSocket = new ServerSocket(peerServerPort);
-    			dwldSocket = dwldServerSocket.accept();
-    			new ServerDownloadThread(dwldSocket,directoryPath).start();
+              while (true){
+                  dwldServerSocket = new ServerSocket(peerServerPort);
+                  dwldSocket = dwldServerSocket.accept();
+                  new ServerDownloadThread(dwldSocket,directoryPath).start();
+              }
         } 
     	catch (IOException ex) {
     			Logger.getLogger(ServerDownload.class.getName()).log(Level.SEVERE, null, ex);
@@ -56,11 +58,10 @@ class ServerDownloadThread extends Thread
             ObjectInputStream objIS = new ObjectInputStream(dwldThreadSocket.getInputStream());
 
             String fileLocation;// Stores the directory name
-            while(true)
-            {
-                System.out.println("1");
+                objOS = new ObjectOutputStream(dwldThreadSocket.getOutputStream());
+                objIS = new ObjectInputStream(dwldThreadSocket.getInputStream());
+
                 String fileName = (String) objIS.readObject();
-                System.out.println("1");
                 File myFile = new File(directoryPath+"//"+fileName+".txt");
                 long length = myFile.length();
                 
@@ -76,16 +77,9 @@ class ServerDownloadThread extends Thread
                 //System.out.println("Sending the file of " +byte_arr.length+ " bytes");
                 
                 objOS.write(byte_arr,0,byte_arr.length);
-                
                 objOS.flush();
-                if(!dwldThreadSocket.isClosed()){
-                    System.out.println("server socket not closed");
-                } else {
-                    System.out.println("Server socket closed ");
-                }
-            }
-
-
+                objOS.close();
+                objIS.close();
 
         }
         catch(Exception e)

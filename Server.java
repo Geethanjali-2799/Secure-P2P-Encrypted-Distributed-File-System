@@ -101,16 +101,9 @@ class ServerTestClass extends Thread
 		} catch (ClassNotFoundException e) {
 			System.out.println("Class not found exception");
 		}
-		int choice=0;
-		try {
-			choice=(int) inputStream.readObject();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(e);
-		}
 
-		while (choice==5) {
+
+		while (true) {
 			try {
 				str = (String) inputStream.readObject();
 			} catch (IOException | ClassNotFoundException ex) {
