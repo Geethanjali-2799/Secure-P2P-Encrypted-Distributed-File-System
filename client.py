@@ -37,7 +37,7 @@ class Client:
             return
 
         peer = self.get_remote_object(res, self.peer_sever_prefix)
-        res = peer.read(name, self.MYIP)
+        res = peer.read(name)
         if res == "file doesn't exist":
             print(res)
             return res
@@ -75,8 +75,8 @@ class Client:
 
     def start(self):
         self.master_server = self.get_remote_object(self.MASTER_IP, self.master_server_prefix)
-        username = input("Enter your username")
-        password = input("Enter your password")
+        username = input("Enter your username\n")
+        password = input("Enter your password\n")
         if self.master_server.validate_user(username, password):
             print("Successfully authorized", username)
         else:
@@ -108,6 +108,6 @@ class Client:
                 exit(0)
 
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     client = Client()
     client.start()
