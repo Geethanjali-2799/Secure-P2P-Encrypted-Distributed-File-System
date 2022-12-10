@@ -80,6 +80,10 @@ class Client:
             return
         print("File successfully restored")
 
+    def delegate(self, name, peerIP, perm_type):
+        res = self.master_server.delegate(name, self.MYIP, peerIP, perm_type)
+        print(res)
+
     def start(self):
         self.master_server = self.get_remote_object(self.MASTER_IP, self.master_server_prefix)
         username = input("Enter your username\n")
@@ -93,7 +97,7 @@ class Client:
         #     print(username, "Successfully register with", self.MYIP)
 
         while True:
-            choice = input("Enter your Choice:\n1.create 2.read 3.write\n4.delete 5.restore 0.exit\n")
+            choice = input("Enter your Choice:\n1.create 2.read 3.write\n4.delete 5.restore 6.delegate permission\n0.exit")
             if choice == "create":
                 name = input("Enter name of the file to be created\n")
                 self.create(name)
@@ -110,9 +114,17 @@ class Client:
             elif choice == "restore":
                 name = input("Enter name of the file to be restore\n")
                 self.restore(name)
+            elif choice == "delegate permission":
+                name = input("Enter name of the file\n")
+                peerIP = input("Enter IP of the peer ex:10.0.0.125\n")
+                type = input("Enter the type of permission ex:read, write, delete\n")
+                self.delegate(name, peerIP, type)
             elif choice == "exit":
                 print("exiting out of file distributed system\n")
                 exit(0)
+            else:
+                print("Invalid choice")
+
 
 
 if __name__ == "__main__":

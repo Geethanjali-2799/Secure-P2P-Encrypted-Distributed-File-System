@@ -111,6 +111,33 @@ class MasterServer(object):
 
         self.file_deleted[name] = False
 
+    def delegate(self, name, user_ip, other_ip, permission):
+        if (name in self.file_deleted and self.file_deleted[name]) or \
+                name not in self.file_deleted:
+            return "file doesn't exist"
+        if permission == "read":
+            if user_ip not in self.read_permissions[name]:
+                return "current user doesn't have read permission"
+            if other_ip in self.read_permissions[name]:
+                return "other user already have read permission"
+            self.read_permissions[name].add(other_ip)
+            return "successfully given read permission"
+        if permission == "write":
+            if user_ip not in self.write_permissions[name]:
+                return "current user doesn't have write permission"
+            if other_ip in self.write_permissions[name]:
+                return "other user already have write permission"
+            self.write_permissions[name].add(other_ip)
+            return "successfully given write permission"
+        if permission == "delete":
+            if user_ip not in self.delete_permissions[name]:
+                return "current user doesn't have delete permission"
+            if other_ip in self.delete_permissions[name]:
+                return "other user already have delete permission"
+            self.delete_permissions[name].add(other_ip)
+            return "successfully given delete permission"
+        return "Invalid permission"
+
 
 def main():
     server_obj = MasterServer()
