@@ -8,8 +8,10 @@ import os
 import sys
 import aes
 import pandas as pd
+from threading import Thread
 
 MASTER_IP = "10.0.0.125"
+NS_IP = "10.0.0.125"
 MASTER_PORT = 9091
 
 sys.excepthook = Pyro4.util.excepthook
@@ -138,9 +140,30 @@ class MasterServer(object):
             return "successfully given delete permission"
         return "Invalid permission"
 
+    def malicious_check(self):
+        def run():
+            file_data = self.file_data
+            for file, peers in file_data.items():
+                for peer in peers:
+                    objs = []
+                    with Pyro4.locateNS(host=NS_IP) as ns:
+                        for obj, obj_uri in ns.list(prefix="peer.server").items():
+                            print("found ", obj)
+                            objs.append(Pyro4.Proxy(obj_uri))
+                    peerobj = objs[0]
+                    key = self.file_keys[file]
+                    data = peer.read(aes.encrypt(file, key))
+                    if data == "file doesn't exist":
+                        print("Malicious Activity detected")
+                        print("Exiting out of File distributed system")
+                        exit()
+        new_thread = Thread(target=run)
+        new_thread.start()
+
 
 def main():
     server_obj = MasterServer()
+    server_obj.malicious_check()
     with Pyro4.Daemon(host=MASTER_IP, port=MASTER_PORT) as daemon:
         obj_uri = daemon.register(server_obj)
         with Pyro4.locateNS() as ns:

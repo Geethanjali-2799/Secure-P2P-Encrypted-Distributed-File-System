@@ -84,6 +84,15 @@ class Client:
         res = self.master_server.delegate(name, self.MYIP, peerIP, perm_type)
         print(res)
 
+    def create_directory(self, name):
+        peer_ips, key = self.master_server.create(name, self.MYIP)
+        key = base64.b64decode(key['data'])
+        for peer_ip in peer_ips:
+            peer = self.get_remote_object(peer_ip, self.peer_sever_prefix)
+            peer.create_directory(aes.encrypt(name, key))
+        print("Successfully created the directory")
+
+
     def start(self):
         self.master_server = self.get_remote_object(self.MASTER_IP, self.master_server_prefix)
         username = input("Enter your username\n")
@@ -97,7 +106,7 @@ class Client:
         #     print(username, "Successfully register with", self.MYIP)
 
         while True:
-            choice = input("Enter your Choice:\n1.create 2.read 3.write\n4.delete 5.restore 6.delegate permission\n0.exit")
+            choice = input("Enter your Choice:\n1.create 2.read 3.write\n4.delete 5.restore 6.delegate permission\n7.create directory 0.exit\n")
             if choice == "create":
                 name = input("Enter name of the file to be created\n")
                 self.create(name)
@@ -119,6 +128,9 @@ class Client:
                 peerIP = input("Enter IP of the peer ex:10.0.0.125\n")
                 type = input("Enter the type of permission ex:read, write, delete\n")
                 self.delegate(name, peerIP, type)
+            elif choice == "create directory":
+                name = input("Enter name of the directory\n")
+                self.create_directory(name)
             elif choice == "exit":
                 print("exiting out of file distributed system\n")
                 exit(0)

@@ -40,6 +40,10 @@ class Server(object):
         with open(self.dir_path + filename, 'w') as f:
             f.write(data)
 
+    def create_directory(self, name):
+        path = os.path.join(self.dir_path, name)
+        os.mkdir(path)
+
 
 def register_master(master_IP, HOST_IP):
     try:
