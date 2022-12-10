@@ -6,6 +6,7 @@ import random
 import Pyro4
 import os
 import sys
+import aes
 import pandas as pd
 
 MASTER_IP = "10.0.0.125"
@@ -24,6 +25,7 @@ class MasterServer(object):
         self.write_permissions = collections.defaultdict(set)
         self.delete_permissions = collections.defaultdict(set)
         self.file_deleted = {}
+        self.file_keys = {}
 
         # update the all users
         self.all_users = {}
@@ -66,7 +68,9 @@ class MasterServer(object):
             self.write_permissions[file_name].add(user_ip)
             self.delete_permissions[file_name].add(user_ip)
         self.file_deleted[file_name] = False
-        return users
+        key = aes.getKey(aes.generate_random_string())
+        self.file_keys[file_name] = key
+        return users, key
 
     def read(self, name, user_ip):
         if (name in self.file_deleted and self.file_deleted[name]) or \
@@ -75,7 +79,8 @@ class MasterServer(object):
         if user_ip not in self.read_permissions[name]:
             return "you do not have read permission"
         users = list(self.file_data[name])
-        return users[0]
+        key = self.file_keys[name]
+        return users[0], key
 
     def write(self, name, user_ip):
         if (name in self.file_deleted and self.file_deleted[name]) or \
@@ -84,7 +89,8 @@ class MasterServer(object):
         if user_ip not in self.write_permissions[name]:
             return "you do not have write permission"
         users = list(self.file_data[name])
-        return users
+        key = self.file_keys[name]
+        return users, key
 
     def delete(self, name, user_ip):
         if (name in self.file_deleted and self.file_deleted[name]) or \

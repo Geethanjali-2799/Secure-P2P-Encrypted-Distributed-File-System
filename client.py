@@ -1,6 +1,8 @@
 import sys
 import Pyro4 as pyro
 
+import aes
+
 sys.excepthook = pyro.util.excepthook
 
 
@@ -23,37 +25,37 @@ class Client:
         return objs[0]
 
     def create(self, name):
-        peer_ips = self.master_server.create(name, self.MYIP)
+        peer_ips, key = self.master_server.create(name, self.MYIP)
         for peer_ip in peer_ips:
             peer = self.get_remote_object(peer_ip, self.peer_sever_prefix)
-            peer.create(name)
+            peer.create(aes.encrypt(name, key))
         print("Successfully created the file")
 
     def read(self, name):
-        res = self.master_server.read(name, self.MYIP)
+        res, key = self.master_server.read(name, self.MYIP)
         if res == "file doesn't exist" or \
                 res == "you do not have read permission":
             print(res)
             return
 
         peer = self.get_remote_object(res, self.peer_sever_prefix)
-        res = peer.read(name)
+        res = peer.read(aes.encrypt(name, key))
         if res == "file doesn't exist":
             print(res)
             return res
 
         print("Below is the file data for", name)
-        print(res)
+        print(aes.decrypt(res, key))
 
     def write(self, name, data):
-        res = self.master_server.write(name, self.MYIP)
+        res, key = self.master_server.write(name, self.MYIP)
         if res == "file doesn't exist" or \
                 res == "you do not have write permission":
             print(res)
             return
         for peer_ip in res:
             peer = self.get_remote_object(peer_ip, self.peer_sever_prefix)
-            peer.write(name, data)
+            peer.write(aes.encrypt(name, key), aes.encrypt(data, key))
 
         print("Successfully written to the", name)
 
