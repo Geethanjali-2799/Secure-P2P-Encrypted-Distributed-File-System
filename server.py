@@ -4,12 +4,14 @@ from pathlib import Path
 
 import Pyro4 as pyro
 import os
+import sys
 
 
+sys.excepthook = pyro.util.excepthook
 
-MASTER_IP = "10.200.5.26"
-HOST_IP = "10.200.5.26"
-HOST_PORT = 9093
+MASTER_IP = "10.0.0.125"
+HOST_IP = "10.0.0.125"
+HOST_PORT = 9092
 
 
 @pyro.expose

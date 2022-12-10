@@ -86,25 +86,25 @@ class Client:
         #     print(username, "Successfully register with", self.MYIP)
 
         while True:
-            choice = input("Enter your Choice:\n1.create 2.read 3.write\n4.delete 5.restore 0.exit")
+            choice = input("Enter your Choice:\n1.create 2.read 3.write\n4.delete 5.restore 0.exit\n")
             if choice == "create":
-                name = input("Enter name of the file to be created")
+                name = input("Enter name of the file to be created\n")
                 self.create(name)
             elif choice == "read":
-                name = input("Enter name of the file to be read")
+                name = input("Enter name of the file to be read\n")
                 self.read(name)
             elif choice == "write":
-                name = input("Enter name of the file to be write")
-                data = input("Enter data to be entered into the file")
+                name = input("Enter name of the file to be write\n")
+                data = input("Enter data to be entered into the file\n")
                 self.write(name, data)
             elif choice == "delete":
-                name = input("Enter name of the file to be write")
+                name = input("Enter name of the file to be delete\n")
                 self.delete(name)
             elif choice == "restore":
-                name = input("Enter name of the file to be write")
+                name = input("Enter name of the file to be restore\n")
                 self.restore(name)
             elif choice == "exit":
-                print("exiting out of file distributed system")
+                print("exiting out of file distributed system\n")
                 exit(0)
 
 

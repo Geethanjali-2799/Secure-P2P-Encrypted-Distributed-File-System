@@ -5,11 +5,13 @@ import random
 
 import Pyro4
 import os
+import sys
 import pandas as pd
 
-MASTER_IP = "10.200.5.26"
-MASTER_PORT = 9096
+MASTER_IP = "10.0.0.125"
+MASTER_PORT = 9091
 
+sys.excepthook = Pyro4.util.excepthook
 
 @Pyro4.expose
 @Pyro4.behavior(instance_mode="single")
@@ -25,9 +27,19 @@ class MasterServer(object):
 
         # update the all users
         self.all_users = {}
-        validation = pd.DataFrame(pd.read_excel("validation.xlsx"))
-        for i in range(len(validation)):
-            self.all_users[validation.loc[i][0]] = validation.loc[i][1]
+        with open("validation.csv") as f:
+            lines = f.readlines()
+            for line in lines:
+                username, password = line.split(",")
+                self.all_users[username.strip()] = password.strip()
+        print(self.all_users)
+
+    def validate_user(self, username, password):
+        if username not in self.all_users :
+            return False
+        if password != self.all_users[username]:
+            return False
+        return True
 
     def register_user(self, user_ip):
         self.registered_users.add(user_ip)
@@ -54,7 +66,7 @@ class MasterServer(object):
             self.write_permissions[file_name].add(user_ip)
             self.delete_permissions[file_name].add(user_ip)
         self.file_deleted[file_name] = False
-        return user
+        return users
 
     def read(self, name, user_ip):
         if (name in self.file_deleted and self.file_deleted[name]) or \
@@ -90,7 +102,7 @@ class MasterServer(object):
         if user_ip not in self.delete_permissions[name]:
             return "you do not have delete/restore permission"
 
-        self.file_deleted[name] = True
+        self.file_deleted[name] = False
 
 
 def main():
