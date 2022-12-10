@@ -8,7 +8,7 @@ def generate_random_string(n = 10):
     return ''.join(random.choices(string.ascii_lowercase +
                              string.digits, k=n))
 def getKey(rand_t):
-    password = "s312323ihkk123"
+    password = "sereoicn232"
     passwordSalt = '10982'
     key = pbkdf2.PBKDF2(password, passwordSalt).read(32)
     return key
@@ -24,42 +24,3 @@ def decrypt(enc, key):
     decrypted = aes.decrypt(enc)
     decrypted = decrypted.decode("utf-8")
     return decrypted
-
-
-text = "hello world"
-rand_text = generate_random_string()
-key = getKey(rand_text)
-print(key)
-e1 = encrypt(text, key)
-e2 = encrypt(text, key)
-print(e1)
-print(e2)
-
-
-e1 = base64.b64decode(e1)
-d1 = decrypt(e1, key)
-# d2 = decrypt(e2)
-
-
-# print(e2)
-print(d1)
-
-
-text = "big bang theory"
-rand_text = generate_random_string()
-key = getKey(rand_text)
-
-e1 = encrypt(text, key)
-e2 = encrypt(text, key)
-print(e1)
-print(e2)
-
-
-e1 = base64.b64decode(e1)
-d1 = decrypt(e1, key)
-# d2 = decrypt(e2)
-
-
-# print(e2)
-print(d1)
-

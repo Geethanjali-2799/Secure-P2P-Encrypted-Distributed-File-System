@@ -76,9 +76,9 @@ class MasterServer(object):
     def read(self, name, user_ip):
         if (name in self.file_deleted and self.file_deleted[name]) or \
                 name not in self.file_deleted:
-            return "file doesn't exist"
+            return "file doesn't exist", None
         if user_ip not in self.read_permissions[name]:
-            return "you do not have read permission"
+            return "you do not have read permission", None
         users = list(self.file_data[name])
         key = self.file_keys[name]
         return users[0], key
@@ -86,9 +86,9 @@ class MasterServer(object):
     def write(self, name, user_ip):
         if (name in self.file_deleted and self.file_deleted[name]) or \
                 name not in self.file_deleted:
-            return "file doesn't exist"
+            return "file doesn't exist", None
         if user_ip not in self.write_permissions[name]:
-            return "you do not have write permission"
+            return "you do not have write permission", None
         users = list(self.file_data[name])
         key = self.file_keys[name]
         return users, key
@@ -96,9 +96,9 @@ class MasterServer(object):
     def delete(self, name, user_ip):
         if (name in self.file_deleted and self.file_deleted[name]) or \
                 name not in self.file_deleted:
-            return "file doesn't exist"
+            return "file doesn't exist", None
         if user_ip not in self.delete_permissions[name]:
-            return "you do not have delete/restore permission"
+            return "you do not have delete/restore permission", None
 
         self.file_deleted[name] = True
 

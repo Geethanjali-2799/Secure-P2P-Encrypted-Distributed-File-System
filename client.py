@@ -11,8 +11,8 @@ class Client:
     def __init__(self):
         self.MASTER_IP = "10.0.0.125"
         self.MASTER_PORT = 9090
-        self.MYIP = "10.0.0.245"
-        self.MYPORT = 9097
+        self.MYIP = "10.0.0.125"
+        self.MYPORT = 9092
         self.master_server = None
         self.master_server_prefix = "master.server"
         self.peer_sever_prefix = "peer.server"
