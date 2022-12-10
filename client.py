@@ -1,3 +1,4 @@
+import base64
 import sys
 import Pyro4 as pyro
 
@@ -8,9 +9,9 @@ sys.excepthook = pyro.util.excepthook
 
 class Client:
     def __init__(self):
-        self.MASTER_IP = "10.200.5.26"
-        self.MASTER_PORT = 9096
-        self.MYIP = "10.200.151.152"
+        self.MASTER_IP = "10.0.0.125"
+        self.MASTER_PORT = 9090
+        self.MYIP = "10.0.0.245"
         self.MYPORT = 9097
         self.master_server = None
         self.master_server_prefix = "master.server"
@@ -26,6 +27,7 @@ class Client:
 
     def create(self, name):
         peer_ips, key = self.master_server.create(name, self.MYIP)
+        key = base64.b64decode(key['data'])
         for peer_ip in peer_ips:
             peer = self.get_remote_object(peer_ip, self.peer_sever_prefix)
             peer.create(aes.encrypt(name, key))
@@ -33,6 +35,7 @@ class Client:
 
     def read(self, name):
         res, key = self.master_server.read(name, self.MYIP)
+        key = base64.b64decode(key['data'])
         if res == "file doesn't exist" or \
                 res == "you do not have read permission":
             print(res)
@@ -45,10 +48,12 @@ class Client:
             return res
 
         print("Below is the file data for", name)
+        res = base64.b64decode(res)
         print(aes.decrypt(res, key))
 
     def write(self, name, data):
         res, key = self.master_server.write(name, self.MYIP)
+        key = base64.b64decode(key['data'])
         if res == "file doesn't exist" or \
                 res == "you do not have write permission":
             print(res)

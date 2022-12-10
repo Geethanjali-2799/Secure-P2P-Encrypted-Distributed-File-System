@@ -70,6 +70,7 @@ class MasterServer(object):
         self.file_deleted[file_name] = False
         key = aes.getKey(aes.generate_random_string())
         self.file_keys[file_name] = key
+        print(key)
         return users, key
 
     def read(self, name, user_ip):
