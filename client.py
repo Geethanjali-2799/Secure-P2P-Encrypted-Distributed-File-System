@@ -1,50 +1,113 @@
 import sys
 import Pyro4 as pyro
+
 sys.excepthook = pyro.util.excepthook
-# def user_choice():
-#     choice = int(input("Enter your Choice:\n1.Create\n2.Read\n3.Write\n4.Delete\n0.Exit"))
-#     while (choice != 0):
-#         if (choice == 1):
-#             filename = input("Enter File name:\n")
-#             Server.create(filename)
-#             choice = int(input("Enter your Choice:\n1.Create\n2.Read\n3.Write\n4.Delete\n0.Exit"))
-#         elif (choice == 2):
-#             filename = input("Enter File name:\n")
-#             Server.read(filename)
-#             choice = int(input("Enter your Choice:\n1.Create\n2.Read\n3.Write\n4.Delete\n0.Exit"))
-#         elif (choice == 3):
-#             filename = input("Enter File name:\n")
-#             data = input("Enter the Data to be Added into File:\n")
-#             Server.write(filename, data)
-#             choice = int(input("Enter your Choice:\n1.Create\n2.Read\n3.Write\n4.Delete\n0.Exit"))
-#         elif (choice == 4):
-#             filename = input("Enter File name:")
-#             Server.delete(filename)
-#             choice = int(input("Enter your Choice:\n1.Create\n2.Read\n3.Write\n4.Delete\n0.Exit"))
 
 
-def connect_to_peer(peer_ip,myip):
-    objs = []
-    with pyro.locateNS(host=peer_ip) as ns:
-        for obj, obj_uri in ns.list(prefix="example.peer.server").items():
-            print("found obj", obj)
-            objs.append(pyro.Proxy(obj_uri))
+class Client:
+    def __init__(self):
+        self.MASTER_IP = "10.200.5.26"
+        self.MASTER_PORT = 9096
+        self.MYIP = "10.200.151.152"
+        self.MYPORT = 9097
+        self.master_server = None
+        self.master_server_prefix = "master.server"
+        self.peer_sever_prefix = "peer.server"
 
-    for obj in objs:
-        res = obj.create("hello_world_test2.txt")
+    def get_remote_object(self, ip, prefix_text):
+        objs = []
+        with pyro.locateNS(host=ip) as ns:
+            for obj, obj_uri in ns.list(prefix=prefix_text).items():
+                print("found ", prefix_text, obj)
+                objs.append(pyro.Proxy(obj_uri))
+        return objs[0]
+
+    def create(self, name):
+        peer_ips = self.master_server.create(name, self.MYIP)
+        for peer_ip in peer_ips:
+            peer = self.get_remote_object(peer_ip, self.peer_sever_prefix)
+            peer.create(name)
+        print("Successfully created the file")
+
+    def read(self, name):
+        res = self.master_server.read(name, self.MYIP)
+        if res == "file doesn't exist" or \
+                res == "you do not have read permission":
+            print(res)
+            return
+
+        peer = self.get_remote_object(res, self.peer_sever_prefix)
+        res = peer.read(name, self.MYIP)
+        if res == "file doesn't exist":
+            print(res)
+            return res
+
+        print("Below is the file data for", name)
         print(res)
 
-def main():
-    myip= "10.200.151.152"
-    objs = []
-    with pyro.locateNS(host="10.200.5.26") as ns:
-        for obj, obj_uri in ns.list(prefix="example.master.server").items():
-            print("found obj", obj)
-            objs.append(pyro.Proxy(obj_uri))
+    def write(self, name, data):
+        res = self.master_server.write(name, self.MYIP)
+        if res == "file doesn't exist" or \
+                res == "you do not have write permission":
+            print(res)
+            return
+        for peer_ip in res:
+            peer = self.get_remote_object(peer_ip, self.peer_sever_prefix)
+            peer.write(name, data)
 
-    for obj in objs:
-        peer_server_ip  = obj.create("hello_world_test2.txt",myip)
-        connect_to_peer(peer_server_ip,myip )
+        print("Successfully written to the", name)
+
+    def delete(self, name):
+        res = self.master_server.delete(name, self.MYIP)
+        if res == "file doesn't exist" or \
+                res == "you do not have delete/restore permission":
+            print(res)
+            return
+        print("File successfully deleted")
+
+    def restore(self, name):
+        res = self.master_server.restore(name, self.MYIP)
+        if res == "file doesn't exist" or \
+                res == "you do not have delete/restore permission":
+            print(res)
+            return
+        print("File successfully restored")
+
+    def start(self):
+        self.master_server = self.get_remote_object(self.MASTER_IP, self.master_server_prefix)
+        username = input("Enter your username")
+        password = input("Enter your password")
+        if self.master_server.validate_user(username, password):
+            print("Successfully authorized", username)
+        else:
+            print(username, " is not authorized")
+            exit(0)
+        # if self.master_server.register(self.MYIP):
+        #     print(username, "Successfully register with", self.MYIP)
+
+        while True:
+            choice = input("Enter your Choice:\n1.create 2.read 3.write\n4.delete 5.restore 0.exit")
+            if choice == "create":
+                name = input("Enter name of the file to be created")
+                self.create(name)
+            elif choice == "read":
+                name = input("Enter name of the file to be read")
+                self.read(name)
+            elif choice == "write":
+                name = input("Enter name of the file to be write")
+                data = input("Enter data to be entered into the file")
+                self.write(name, data)
+            elif choice == "delete":
+                name = input("Enter name of the file to be write")
+                self.delete(name)
+            elif choice == "restore":
+                name = input("Enter name of the file to be write")
+                self.restore(name)
+            elif choice == "exit":
+                print("exiting out of file distributed system")
+                exit(0)
+
 
 if __name__ == "_main_":
-    main()
+    client = Client()
+    client.start()
